@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Goudy-Bold.ttf" />
+    <None Remove="MrsEavesRoman.ttf" />
+    <None Remove="VampirePDF_Background.png" />
+    <None Remove="VampirePDF_Separator.jpg" />
+    <None Remove="VampirePDF_SmallHeader.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\VampirePDF_Background.png" />
+    <EmbeddedResource Include="Resources\Goudy-Bold.ttf" />
+    <EmbeddedResource Include="Resources\VampirePDF_Separator.jpg" />
+    <EmbeddedResource Include="Resources\MrsEavesRoman.ttf" />
+    <EmbeddedResource Include="Resources\VampirePDF_SmallHeader.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="itext7" Version="7.1.12" />
+  </ItemGroup>
+
+</Project>
