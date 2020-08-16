@@ -9,6 +9,9 @@ using iText.Kernel.Colors;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Annot;
+using iText.Kernel.Pdf.Canvas;
+using iText.Kernel.Pdf.Colorspace;
 using iText.Layout;
 using iText.Layout.Borders;
 using iText.Layout.Element;
@@ -24,6 +27,11 @@ namespace PDFWrapper
         private const string SeparatorImage = "PDFWrapper.Resources.VampirePDF_Separator.jpg";
         private const string HeaderFont = "PDFWrapper.Resources.MrsEavesRoman.ttf";
         private const float HeaderFontSize = 14f;
+        
+        private const float InputLeft = 60f;
+        private const float InputLabelWidth = 60f;
+        private const float InputWidth = 162f;
+        private const float InputFontSize = 10f;
 
         // PDFWrapper.Resources.VampirePDF_Background.png
         // PDFWrapper.Resources.VampirePDF_Separator.jpg
@@ -38,8 +46,26 @@ namespace PDFWrapper
         {
             Document.SetMargins(0, 0, 0, 0);
             AddPage(1);
-            
-            AddSectionHeader("HEADER 1", 70f, 600f);
+
+            float bottom = 660f;
+            AddTextEdit("txtName", "Name", InputLabelWidth, InputLeft, InputWidth, bottom);
+            AddTextEdit("txtNature", "Nature", InputLabelWidth, InputLeft + InputWidth, InputWidth, bottom);
+            AddTextEdit("txtClan", "Clan", InputLabelWidth, InputLeft + 2 * InputWidth, InputWidth, bottom);
+
+            bottom -= (InputFontSize * 1.5f);
+            AddTextEdit("txtPlayer", "Player", InputLabelWidth, InputLeft, InputWidth, bottom);
+            AddTextEdit("txtDemeanor", "Demeanor", InputLabelWidth, InputLeft + InputWidth, InputWidth, bottom);
+            AddTextEdit("txtGeneration", "Generation", InputLabelWidth, InputLeft + 2 * InputWidth, InputWidth, bottom);
+
+            bottom -= (InputFontSize * 1.5f);
+            AddTextEdit("txtChronicle", "Chronicle", InputLabelWidth, InputLeft, InputWidth, bottom);
+            AddTextEdit("txtConcept", "Concept", InputLabelWidth, InputLeft + InputWidth, InputWidth, bottom);
+            AddTextEdit("txtSire", "Sire", InputLabelWidth, InputLeft + 2 * InputWidth, InputWidth, bottom);
+
+            bottom -= (HeaderFontSize * 1.5f);
+            AddSectionHeader("Attributes", 60f, bottom);
+
+            bottom -= (HeaderFontSize * 1.5f);
         }
 
         private void AddPage(int pageNumber)
@@ -48,6 +74,11 @@ namespace PDFWrapper
             {
                 var pdf = Document.GetPdfDocument();
                 pdf.AddNewPage();
+            }
+            else
+            {
+                var pdf = Document.GetPdfDocument();
+                pdf.AddFont(this.GetResourceFont(HeaderFont));
             }
 
             AddPageBackground();
@@ -82,8 +113,6 @@ namespace PDFWrapper
             h1.SetFixedPosition(left, bottom - (fontHeight / 2), width);
             h1.SetTextAlignment(TextAlignment.CENTER);
             h1.SetFont(this.GetResourceFont(HeaderFont));
-            //h1.SetBackgroundColor(ColorConstants.RED);
-            //h1.SetFontColor(ColorConstants.WHITE);
             h1.SetFontSize(fontHeight);
             h1.SetBold();
             Document.Add(h1);
@@ -92,8 +121,6 @@ namespace PDFWrapper
             h3.SetFixedPosition(left, bottom - h2.GetImageScaledHeight() - fontHeight, width);
             h3.SetTextAlignment(TextAlignment.CENTER);
             h3.SetFont(this.GetResourceFont(HeaderFont));
-            //h3.SetBackgroundColor(ColorConstants.RED);
-            //h3.SetFontColor(ColorConstants.WHITE);
             h3.SetFontSize(fontHeight);
             h3.SetBold();
             Document.Add(h3);
@@ -116,11 +143,33 @@ namespace PDFWrapper
             h1.SetTextAlignment(TextAlignment.CENTER);
             h1.SetFont(this.GetResourceFont(HeaderFont));
             h1.SetBackgroundColor(ColorConstants.WHITE);
-            //h1.SetFontColor(ColorConstants.WHITE);
             h1.SetFontSize(fontHeight);
             h1.SetBold();
             h1.SetFixedPosition((pageSize.GetWidth() - headerWidth) / 2, bottom - (HeaderFontSize / 4f), headerWidth);
             Document.Add(h1);
+        }
+
+        private void AddTextEdit(string inputName, string labelText, float labelWidth, float left, float width, float bottom)
+        {
+            var pdf = Document.GetPdfDocument();
+            var form = PdfAcroForm.GetAcroForm(pdf, true);
+
+            var h1 = new Paragraph($"{labelText}:");
+            h1.SetTextAlignment(TextAlignment.LEFT);
+            h1.SetFont(this.GetResourceFont(HeaderFont));
+            h1.SetFontSize(InputFontSize);
+            h1.SetBold();
+            h1.SetFixedPosition(left, bottom, labelWidth);
+            Document.Add(h1);
+
+            var position = new Rectangle(left + labelWidth, bottom, width - labelWidth, InputFontSize * 1.5f);
+
+            var input = PdfFormField.CreateText(pdf, position, inputName);
+            input.SetFont(this.GetResourceFont(HeaderFont));
+            input.SetFontSize(InputFontSize);
+            input.SetBackgroundColor(new DeviceCmyk(0, 0, 0, 0));
+            input.SetMaxLen(50);
+            form.AddField(input);
         }
     }
 }
