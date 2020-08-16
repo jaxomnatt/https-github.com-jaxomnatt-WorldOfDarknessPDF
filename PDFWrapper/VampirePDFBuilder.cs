@@ -32,6 +32,8 @@ namespace PDFWrapper
         private const float InputLabelWidth = 60f;
         private const float InputWidth = 162f;
         private const float InputFontSize = 10f;
+        private const float InputBottom = 3f;
+        private const float InputUnderlineWidth = 0.5f;
 
         // PDFWrapper.Resources.VampirePDF_Background.png
         // PDFWrapper.Resources.VampirePDF_Separator.jpg
@@ -48,24 +50,37 @@ namespace PDFWrapper
             AddPage(1);
 
             float bottom = 660f;
-            AddTextEdit("txtName", "Name", InputLabelWidth, InputLeft, InputWidth, bottom);
-            AddTextEdit("txtNature", "Nature", InputLabelWidth, InputLeft + InputWidth, InputWidth, bottom);
-            AddTextEdit("txtClan", "Clan", InputLabelWidth, InputLeft + 2 * InputWidth, InputWidth, bottom);
+            AddBasicInputSection("Name", "Nature", "Clan", bottom);
 
             bottom -= (InputFontSize * 1.5f);
-            AddTextEdit("txtPlayer", "Player", InputLabelWidth, InputLeft, InputWidth, bottom);
-            AddTextEdit("txtDemeanor", "Demeanor", InputLabelWidth, InputLeft + InputWidth, InputWidth, bottom);
-            AddTextEdit("txtGeneration", "Generation", InputLabelWidth, InputLeft + 2 * InputWidth, InputWidth, bottom);
+            bottom -= InputBottom;
+            AddBasicInputSection("Player", "Demeanor", "Generation", bottom);
 
             bottom -= (InputFontSize * 1.5f);
-            AddTextEdit("txtChronicle", "Chronicle", InputLabelWidth, InputLeft, InputWidth, bottom);
-            AddTextEdit("txtConcept", "Concept", InputLabelWidth, InputLeft + InputWidth, InputWidth, bottom);
-            AddTextEdit("txtSire", "Sire", InputLabelWidth, InputLeft + 2 * InputWidth, InputWidth, bottom);
+            bottom -= InputBottom;
+            AddBasicInputSection("Chronicle", "Concept", "Sire", bottom);
 
             bottom -= (HeaderFontSize * 1.5f);
-            AddSectionHeader("Attributes", 60f, bottom);
+            AddSectionHeader("Attributes", 70f, bottom);
+
+            // TODO: Add Physical, Social, Physical Headers here
 
             bottom -= (HeaderFontSize * 1.5f);
+            bottom -= InputBottom;
+            AddBasicInputSection("Strength", "Charisma", "Perception", bottom);
+
+            bottom -= (InputFontSize * 1.5f);
+            bottom -= InputBottom;
+            AddBasicInputSection("Dexterity", "Manipulation", "Intelligence", bottom);
+
+            bottom -= (InputFontSize * 1.5f);
+            bottom -= InputBottom;
+            AddBasicInputSection("Stamina", "Appearance", "Wits", bottom);
+
+            bottom -= (HeaderFontSize * 1.5f);
+            AddSectionHeader("Abilities", 70f, bottom);
+
+            // Add Talents, Skills, Knowledges headers here
         }
 
         private void AddPage(int pageNumber)
@@ -149,6 +164,18 @@ namespace PDFWrapper
             Document.Add(h1);
         }
 
+        private void AddBasicInputSectionHeader(string leftName, string middleName, string rightName, float bottom)
+        {
+
+        }
+
+        private void AddBasicInputSection(string leftName, string middleName, string rightName, float bottom)
+        {
+            AddTextEdit($"txt{leftName}", leftName, InputLabelWidth, InputLeft, InputWidth, bottom);
+            AddTextEdit($"txt{middleName}", middleName, InputLabelWidth, InputLeft + InputWidth, InputWidth, bottom);
+            AddTextEdit($"txt{rightName}", rightName, InputLabelWidth, InputLeft + 2 * InputWidth, InputWidth, bottom);
+        }
+
         private void AddTextEdit(string inputName, string labelText, float labelWidth, float left, float width, float bottom)
         {
             var pdf = Document.GetPdfDocument();
@@ -170,6 +197,15 @@ namespace PDFWrapper
             input.SetBackgroundColor(new DeviceCmyk(0, 0, 0, 0));
             input.SetMaxLen(50);
             form.AddField(input);
+
+            var canvas = new PdfCanvas(pdf.GetPage(pdf.GetNumberOfPages()));
+            canvas.SaveState();
+            canvas.SetStrokeColor(ColorConstants.BLACK);
+            canvas.SetLineWidth(InputUnderlineWidth);
+            canvas.MoveTo(left + labelWidth, bottom - InputUnderlineWidth);
+            canvas.LineTo(left + width, bottom - InputUnderlineWidth);
+            canvas.ClosePathStroke();
+            canvas.RestoreState();
         }
     }
 }
