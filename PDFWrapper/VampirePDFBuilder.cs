@@ -74,19 +74,19 @@ namespace PDFWrapper
             bottom -= headerSpacing;
             AddSectionHeader("Attributes", 70f, bottom);
 
+            UnderlineInputLabels = true;
+
             bottom -= inputSpacing;
             AddBasicInputSectionHeader("Physical", "Social", "Mental", bottom);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Strength", "Charisma", "Perception", bottom, CharacterStoryLabelWidth);
+            AddBasicInputSection("Strength", "Charisma", "Perception", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Dexterity", "Manipulation", "Intelligence", bottom, CharacterStoryLabelWidth);
+            AddBasicInputSection("Dexterity", "Manipulation", "Intelligence", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Stamina", "Appearance", "Wits", bottom, CharacterStoryLabelWidth);
-
-            UnderlineInputLabels = true;
+            AddBasicInputSection("Stamina", "Appearance", "Wits", bottom, backgroundLabelWidth);
 
             bottom -= headerSpacing;
             AddSectionHeader("Abilities", 70f, bottom);
@@ -95,40 +95,40 @@ namespace PDFWrapper
             AddBasicInputSectionHeader("Talents", "Skills", "Knowledges", bottom);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Alertness", "Animal Ken", "Academics", bottom);
+            AddBasicInputSection("Alertness", "Animal Ken", "Academics", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Athletics", "Crafts", "Computer", bottom);
+            AddBasicInputSection("Athletics", "Crafts", "Computer", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Awareness", "Drive", "Finance", bottom);
+            AddBasicInputSection("Awareness", "Drive", "Finance", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Brawl", "Etiquette", "Investigation", bottom);
+            AddBasicInputSection("Brawl", "Etiquette", "Investigation", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Empathy", "Firearms", "Law", bottom);
+            AddBasicInputSection("Empathy", "Firearms", "Law", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Expression", "Larceny", "Medicine", bottom);
+            AddBasicInputSection("Expression", "Larceny", "Medicine", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Intimidation", "Melee", "Occult", bottom);
+            AddBasicInputSection("Intimidation", "Melee", "Occult", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Leadership", "Performance", "Politics", bottom);
+            AddBasicInputSection("Leadership", "Performance", "Politics", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Streetwise", "Stealth", "Science", bottom);
+            AddBasicInputSection("Streetwise", "Stealth", "Science", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection("Subterfuge", "Survival", "Technology", bottom);
+            AddBasicInputSection("Subterfuge", "Survival", "Technology", bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection(string.Empty, string.Empty, string.Empty, bottom);
+            AddBasicInputSection(string.Empty, string.Empty, string.Empty, bottom, backgroundLabelWidth);
 
             bottom -= inputSpacing;
-            AddBasicInputSection(string.Empty, string.Empty, string.Empty, bottom);
+            AddBasicInputSection(string.Empty, string.Empty, string.Empty, bottom, backgroundLabelWidth);
 
             bottom -= headerSpacing;
             AddSectionHeader("Advantages", 70f, bottom);
@@ -179,7 +179,7 @@ namespace PDFWrapper
             AddBasicInputSection(string.Empty, "Experience", "Spent Experience", bottom, backgroundLabelWidth, true);
 
             bottom -= inputSpacing;
-            AddBasicInputSection(string.Empty, string.Empty, string.Empty, bottom, backgroundLabelWidth, true);
+            AddBasicInputSection(string.Empty, "Rage Pool (        /turn)", "Maximum Rage Pool", bottom, backgroundLabelWidth, true);
 
             bottom -= inputSpacing;
             AddBasicInputSection(string.Empty, string.Empty, string.Empty, bottom, backgroundLabelWidth, true);
@@ -193,27 +193,49 @@ namespace PDFWrapper
             bottom -= inputSpacing;
             AddBasicInputSection(string.Empty, string.Empty, string.Empty, bottom, backgroundLabelWidth, true);
 
-            bottom -= (inputSpacing * 1.5f);
+            bottom -= inputSpacing;
             AddInfoLabel("Attributes: 7/5/3 • Abilities:13/9/5 • Disciplines:3 • Backgrounds:5 • Virtues:7 • Freebie Points:15 (7/5/2/1)", InputLeft, 3f * InputWidth, bottom);
+
+
+            for(int pageNumber = 2; pageNumber <= 5; pageNumber++)
+            {
+                AddBlankPage(pageNumber, "Notes");
+            }
         }
 
         private float AddPage(int pageNumber)
         {
             if (pageNumber > 1)
             {
-                var pdf = Document.GetPdfDocument();
-                pdf.AddNewPage();
+                Document.Add(new AreaBreak(AreaBreakType.NEXT_PAGE));
             }
             else
             {
                 var pdf = Document.GetPdfDocument();
                 pdf.AddFont(this.GetResourceFont(HeaderFont));
+                pdf.AddFont(this.GetResourceFont(InputFont));
             }
 
             AddPageBackground();
             return AddPageHeader();
         }
 
+        private void AddBlankPage(int pageNumber, string notesHeader)
+        {
+            var pdf = Document.GetPdfDocument();
+            var form = PdfAcroForm.GetAcroForm(pdf, true);
+            var pageSize = pdf.GetDefaultPageSize();
+
+            var bottom = AddPage(pageNumber);
+            var position = new Rectangle(InputLeft, 72f, 3 * InputWidth, bottom - 72f);
+
+            var input = PdfFormField.CreateMultilineText(pdf, position, $"txtNote{pageNumber}", string.Empty);
+            input.SetFont(this.GetResourceFont(InputFont));
+            input.SetFontSize(InputFontSize);
+            input.SetBackgroundColor(new DeviceCmyk(0, 0, 0, 0));
+            //input.SetBackgroundColor(ColorConstants.RED);
+            form.AddField(input);
+        }
 
         private void AddPageBackground()
         {
@@ -412,13 +434,19 @@ namespace PDFWrapper
 
         private void AddInfoLabel(string labelText, float left, float width, float bottom)
         {
-            var h1 = new Paragraph(labelText);
-            h1.SetTextAlignment(TextAlignment.CENTER);
+            var pdf = Document.GetPdfDocument();
+            var form = PdfAcroForm.GetAcroForm(pdf, true);
+
+            var inputName = $"txt{InputCounter++}";
+            var position = new Rectangle(left, bottom, width, InputFontSize * 1.25f);
+
+            var h1 = PdfFormField.CreateText(pdf, position, inputName, labelText);
             h1.SetFont(this.GetResourceFont(InputFont));
-            h1.SetFontSize(InputSectionHeaderFontSize);
-            h1.SetBold();
-            h1.SetFixedPosition(left, bottom, width);
-            Document.Add(h1);
+            h1.SetFontSize(InputFontSize);
+            h1.SetBackgroundColor(new DeviceCmyk(0, 0, 0, 0));
+            h1.SetMaxLen(128);
+            h1.SetJustification(PdfFormField.ALIGN_CENTER);
+            form.AddField(h1);
         }
     }
 }
